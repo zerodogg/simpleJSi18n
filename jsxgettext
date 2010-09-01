@@ -1,0 +1,84 @@
+#!/usr/bin/perl
+# jsxgettext
+# Copyright (C) Eskild Hustvedt 2010
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use File::Temp qw(tempfile);
+use File::Copy qw(copy);
+use Fatal qw(open);
+
+my %map;
+
+if (@ARGV <= 1)
+{
+	usage();
+	exit(0);
+}
+
+my $outfile = shift;
+
+if (-e $outfile)
+{
+	die("$outfile: exists. Remove it and try again\n");
+}
+
+foreach my $file (@ARGV)
+{
+	my ($out,$temp) = tempfile(CLEANUP => 1);
+
+	my $in = slurp($file);
+	$in =~ s/_\(/gettext\(/g;
+	print {$out} $in;
+	close($out);
+
+	$map{$file} = $temp;
+}
+
+my @cmd = qw(xgettext --language Perl -o);
+push(@cmd,$outfile);
+
+foreach my $fmap (keys %map)
+{
+	push(@cmd,$map{$fmap});
+}
+system(@cmd);
+
+my $result = slurp($outfile);
+foreach my $k (keys %map)
+{
+	$result =~ s/$map{$k}/$k/g;
+}
+open(my $output,'>',$outfile);
+print {$output} $result;
+close($outfile);
+
+exit(0);
+
+sub slurp
+{
+	my $f = shift;
+	open(my $in,'<',$f);
+	local $/;
+	$/ = undef;
+	my $data = <$in>;
+	close($in);
+	return $data;
+}
+
+sub usage
+{
+	print "USAGE: $0 outfile.pot infile1.js infile2.js ..\n";
+}
