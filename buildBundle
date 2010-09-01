@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use FindBin qw($RealBin);
+
+if(not @ARGV)
+{
+	usage();
+	exit(0);
+}
+
+my $outfile = shift;
+
+if(not -e $RealBin.'/bundle.js')
+{
+	die("Failed to detect bundle.js\n");
+}
+
+my $generated = slurp($RealBin.'/bundle.js');
+$generated .= "/* PAYLOAD DATA */\n";
+$generated .= "var I18N_CONTENT={};";
+
+foreach my $f (@ARGV)
+{
+	my $lang = $f;
+	$lang =~ s{.*\/}{}g;
+	$lang =~ s{\..*}{}g;
+	$generated .= 'I18N_CONTENT["'.$lang.'"]='.slurp($f).';';
+}
+
+open(my $o,'>',$outfile);
+print {$o} $generated;
+close($o);
+
+exit(0);
+
+sub slurp
+{
+	my $f = shift;
+	open(my $in,'<',$f);
+	local $/;
+	$/ = undef;
+	my $data = <$in>;
+	close($in);
+	return $data;
+}
+
+sub usage
+{
+	print "USAGE: $0 outfile.js infile.json infile2.json ..\n";
+}
