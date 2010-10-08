@@ -40,8 +40,19 @@ foreach my $file (@ARGV)
 	my ($out,$temp) = tempfile(CLEANUP => 1);
 
 	my $in = slurp($file);
-	$in =~ s/_\(/gettext\(/g;
-	print {$out} $in;
+	foreach my $l (split(/\n/,$in))
+	{
+		if ($l =~ /_\(/)
+		{
+			$l =~ s/^[^_]+//;
+			$l =~ s/_\(/gettext\(/g;
+		}
+		else
+		{
+			$l = '';
+		}
+		print {$out} $l."\n";
+	}
 	close($out);
 
 	$map{$file} = $temp;
