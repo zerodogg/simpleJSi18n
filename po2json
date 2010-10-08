@@ -31,6 +31,7 @@ my %map;
 foreach my $o (@{$f})
 {
 	next if $o->loaded_line_number < 6;
+	next if $o->fuzzy;
 	my $id  = $o->dequote($o->msgid);
 	my $str = $o->dequote($o->msgstr);
 	$map{$id} = $str;
