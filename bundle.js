@@ -17,7 +17,7 @@
 {
 	var map = null;
 
-	function gettext (string)
+	window.gettext = window._ = function (string)
 	{
 		if(map == null)
 		{
@@ -51,7 +51,4 @@
 			}
 		}
 	}
-
-	window._       = gettext;
-	window.gettext = gettext;
 })();
