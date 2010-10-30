@@ -19,7 +19,7 @@
 
 (function ()
 {
-	var map = null,
+    var map = null,
         lang = null,
         langs = null;
 
@@ -33,15 +33,15 @@
         var str = map[string][lang];
         if(str && str.length)
             return str;
-		return string;
+        return string;
     };
 
     /* Initialization method. We don't initialize until the first call to _/gettext.
      * After initialization has finished, we will replace _/gettext with the proper
      * gettext method over */
-	window._ = window.gettext = function (string)
-	{
-		var language = navigator.language || navigator.browserLanguage; 
+    window._ = window.gettext = function (string)
+    {
+        var language = navigator.language || navigator.browserLanguage; 
         try
         {
             if(_LANGUAGE !== undefined)
@@ -50,16 +50,16 @@
             }
         } catch(e) {}
 
-		var languages = language.split(/(;|,)/);
-		for (var i = 0; i < languages.length; i++)
-		{
-			var tryLang = languages[i];
+        var languages = language.split(/(;|,)/);
+        for (var i = 0; i < languages.length; i++)
+        {
+            var tryLang = languages[i];
             if (langs[tryLang])
             {
                 lang = tryLang;
                 break;
             }
-		}
+        }
         if(lang)
         {
             // Replace us with the proper gettext
@@ -72,5 +72,5 @@
             window.gettext = window._ = function(s) { return s; };
         }
         return window.gettext(string);
-	};
+    };
 })();
