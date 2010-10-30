@@ -27,35 +27,28 @@
     /*PAYLOAD*/
     /* End of payload data */
 
-	window.gettext = window._ = function (string)
-	{
-        try
-        {
-            if(initI18N !== null)
-            {
-                initI18N();
-                initI18N = null;
-            }
-            if(lang != null)
-            {
-                var str = map[string][lang];
-                if(str && str.length)
-                    return str;
-            }
-        } catch(e) {}
+    /* Main gettext method */
+    var gettext = function (string)
+    {
+        var str = map[string][lang];
+        if(str && str.length)
+            return str;
 		return string;
-	}
+    };
 
-	function initI18N ()
+    /* Initialization method. We don't initialize until the first call to _/gettext.
+     * After initialization has finished, we will replace _/gettext with the proper
+     * gettext method over */
+	window._ = window.gettext = function (string)
 	{
 		var language = navigator.language || navigator.browserLanguage; 
-		try
-		{
-			if(_I18N_LANGUAGE_OVERRIDE !== undefined)
-			{
-				language = _I18N_LANGUAGE_OVERRIDE;
-			}
-		} catch(e) { }
+        try
+        {
+            if(_LANGUAGE !== undefined)
+            {
+                language = _LANGUAGE;
+            }
+        } catch(e) {}
 
 		var languages = language.split(/(;|,)/);
 		for (var i = 0; i < languages.length; i++)
@@ -67,5 +60,17 @@
                 break;
             }
 		}
-	}
+        if(lang)
+        {
+            // Replace us with the proper gettext
+            window.gettext = window._ = gettext;
+        }
+        else
+        {
+            // We didn't detect any language that is supported.
+            // Replace ourselves with a dummy function.
+            window.gettext = window._ = function(s) { return s; };
+        }
+        return window.gettext(string);
+	};
 })();
