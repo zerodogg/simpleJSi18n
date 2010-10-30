@@ -2,6 +2,9 @@
 use strict;
 use warnings;
 use FindBin qw($RealBin);
+use JSON::Any;
+
+my %generated;
 
 if(not @ARGV)
 {
@@ -16,20 +19,34 @@ if(not -e $RealBin.'/bundle.js')
 	die("Failed to detect bundle.js\n");
 }
 
-my $generated = slurp($RealBin.'/bundle.js');
-$generated .= "/* PAYLOAD DATA */\n";
-$generated .= "var I18N_CONTENT={};";
+my $generatedSTR = slurp($RealBin.'/bundle.js');
+my %langs;
 
 foreach my $f (@ARGV)
 {
 	my $lang = $f;
 	$lang =~ s{.*\/}{}g;
 	$lang =~ s{\..*}{}g;
-	$generated .= 'I18N_CONTENT["'.$lang.'"]='.slurp($f).';';
+	$langs{$lang} = 1;
+	my $data = JSON::Any->jsonToObj(slurp($f));
+	foreach my $ent (keys(%{$data}))
+	{
+		if(not $generated{$ent})
+		{
+			$generated{$ent} = {};
+		}
+		$generated{$ent}{$lang} = $data->{$ent};
+	}
+}
+my $payload = 'map ='.JSON::Any->objToJson(\%generated).',';
+$payload .= "langs = ".JSON::Any->objToJson(\%langs).";\n";
+if(not $generatedSTR =~ s{/\*PAYLOAD\*/}{$payload})
+{
+	die("Failed to insert payload\n");
 }
 
 open(my $o,'>',$outfile);
-print {$o} $generated;
+print {$o} $generatedSTR;
 close($o);
 
 exit(0);

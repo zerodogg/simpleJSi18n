@@ -1,3 +1,5 @@
+/*! - Copyright Eskild Hustvedt 2010
+ * Code license: GNU LGPLv3 */
 /*
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -11,26 +13,41 @@
 
  You should have received a copy of the GNU Lesser General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+ The payload data does not fall under the above license.
  */
 
 (function ()
 {
-	var map = null;
+	var map = null,
+        lang = null,
+        langs = null;
+
+    /* Begin payload data */
+    /*PAYLOAD*/
+    /* End of payload data */
 
 	window.gettext = window._ = function (string)
 	{
-		if(map == null)
-		{
-			initI18N();
-		}
-		if(map[string] != null && map[string].length > 0)
-			return map[string];
+        try
+        {
+            if(initI18N !== null)
+            {
+                initI18N();
+                initI18N = null;
+            }
+            if(lang != null)
+            {
+                var str = map[string][lang];
+                if(str && str.length)
+                    return str;
+            }
+        } catch(e) {}
 		return string;
 	}
 
 	function initI18N ()
 	{
-		map = {};
 		var language = navigator.language || navigator.browserLanguage; 
 		try
 		{
@@ -43,12 +60,12 @@
 		var languages = language.split(/(;|,)/);
 		for (var i = 0; i < languages.length; i++)
 		{
-			var lang = languages[i];
-			if(I18N_CONTENT[lang])
-			{
-				map = I18N_CONTENT[lang];
-				break;
-			}
+			var tryLang = languages[i];
+            if (langs[tryLang])
+            {
+                lang = tryLang;
+                break;
+            }
 		}
 	}
 })();
