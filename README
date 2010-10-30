@@ -12,17 +12,15 @@ jsxgettext		A "xgettext" wrapper for JavaScript files. Can be used to build
 
 				Usage: ./jsxgettext outfile.pot infile1.js infile2.js ..
 
-po2json			Converts a gettext PO-file into a JSON datastructure that
-				the JS library can use.
+jsmsgfmt        A "msgfmt"-like wrapper for JavaScript files. Can be used to build
+				a single JavaScript file that contains the basic i18n library
+				along with the strings for each language.
 
-buildBundle		Builds a single javascript file that contains the basic i18n
-				library, along with the strings for each language.
-
-				Usage: ./buildBundle output.js infile.po.json infile2.po.json
-
-				The filenames of the po.json files are used as a language
+				The filenames of the file.po files are used as a language
 				identifier.
 
-In short, jsxgettext builds a PO-file, po2json converts a PO-file to a JSON
-structure and buildBundle converts several JSON files into a single usable
-i18n library with all strings.
+				Usage: ./jsmsgfmt outfile.js infile1.po infile2.po ..
+
+In short, jsxgettext builds a PO-file and jsmsgfmt builds a full JS file
+that contains the JS library and the translations. Include this file in
+your app and it will handle language detection etc. for you.

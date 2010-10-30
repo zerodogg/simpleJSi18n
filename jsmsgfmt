@@ -1,0 +1,86 @@
+#!/usr/bin/perl
+use strict;
+use FindBin qw($RealBin);
+use JSON::Any;
+use Locale::PO qw(encode_json);
+use Data::Dumper qw(Dumper);
+
+my %generated;
+
+if (@ARGV < 2 || grep(/^--help$/,@ARGV))
+{
+	usage();
+	exit(0);
+}
+
+my $outfile = shift;
+
+if(not -e $RealBin.'/bundle.js')
+{
+	die("Failed to detect bundle.js\n");
+}
+if ($outfile =~ /\.pot?$/)
+{
+	die("Bailing out, unsafe filename: $outfile\nMust not end in .po or .pot\n");
+}
+
+my $generatedSTR = slurp($RealBin.'/bundle.js');
+my %langs;
+
+foreach my $file (@ARGV)
+{
+	my $lang = $file;
+	$lang =~ s{.*\/}{}g;
+	$lang =~ s{\..*}{}g;
+	$langs{$lang} = 1;
+	my $f = Locale::PO->load_file_asarray($file) or die("Failed to load po-file $file: $!\n");
+
+	my %map;
+
+	foreach my $o (@{$f})
+	{
+		next if $o->loaded_line_number < 6;
+		next if $o->fuzzy;
+		my $id  = $o->dequote($o->msgid);
+		my $str = $o->dequote($o->msgstr);
+		$map{$id} = $str;
+	}
+	foreach my $ent (keys(%map))
+	{
+		if(not $generated{$ent})
+		{
+			$generated{$ent} = {};
+		}
+		$generated{$ent}{$lang} = $map{$ent};
+	}
+}
+my $payload = 'map ='.toJSON(\%generated).',';
+$payload .= "langs = ".toJSON(\%langs).";\n";
+if(not $generatedSTR =~ s{/\*PAYLOAD\*/}{$payload})
+{
+	die("Failed to insert payload\n");
+}
+
+open(my $o,'>',$outfile);
+print {$o} $generatedSTR;
+close($o);
+
+
+sub toJSON
+{
+	return JSON::Any->objToJson(shift);
+}
+sub slurp
+{
+	my $f = shift;
+	open(my $in,'<',$f);
+	local $/;
+	$/ = undef;
+	my $data = <$in>;
+	close($in);
+	return $data;
+}
+sub usage
+{
+	print "USAGE: $0 outfile.js lang1.po lang2.po lang3.po ..\n";
+}
