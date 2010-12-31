@@ -17,7 +17,7 @@
  The payload data does not fall under the above license.
  */
 
-(function ()
+(function (window)
 {
     var map = null,
         lang = null,
@@ -42,13 +42,10 @@
     window._ = window.gettext = function (string)
     {
         var language = navigator.language || navigator.browserLanguage; 
-        try
+        if(window['_LANGUAGE'])
         {
-            if(_LANGUAGE !== undefined)
-            {
-                language = _LANGUAGE;
-            }
-        } catch(e) {}
+            language = window['_LANGUAGE'];
+        }
 
         var languages = language.split(/(;|,)/);
         for (var i = 0; i < languages.length; i++)
@@ -73,4 +70,4 @@
         }
         return window.gettext(string);
     };
-})();
+})(window);
