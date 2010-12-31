@@ -1,7 +1,7 @@
 simpleJSi18n is a simple gettext-like i18n library (and various utilities) for
 javascript.
 
-Currently it consists of three utilities and one basic i18n library, but it
+Currently it consists of two utilities and one basic i18n library, but it
 might be extended to include additional variants of the i18n library.
 
 Utilities:
