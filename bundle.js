@@ -41,14 +41,16 @@
      * gettext method over */
     window._ = window.gettext = function (string)
     {
-        var language = navigator.language || navigator.browserLanguage; 
-        if(window['_LANGUAGE'])
+        var language = navigator.language || navigator.browserLanguage, 
+            i = 0,
+            languages;
+        if(window._LANGUAGE)
         {
-            language = window['_LANGUAGE'];
+            language = window._LANGUAGE;
         }
 
-        var languages = language.split(/(;|,)/);
-        for (var i = 0; i < languages.length; i++)
+        languages = language.split(/(;|,)/);
+        for (i = 0; i < languages.length; i++)
         {
             var tryLang = languages[i];
             if (langs[tryLang])
