@@ -19,8 +19,18 @@ use warnings;
 use File::Temp qw(tempfile);
 use File::Copy qw(copy);
 use Fatal qw(open);
+use Getopt::Long;
 
 my %map;
+my @extraI18nFunctions;
+
+GetOptions(
+	'addfunc=s' => \@extraI18nFunctions,
+	'help' => sub {
+		usage();
+		exit(0);
+	},
+) or die("See --help for more information\n");
 
 if (@ARGV <= 1)
 {
@@ -39,15 +49,31 @@ foreach my $file (@ARGV)
 {
 	my ($out,$temp) = tempfile(CLEANUP => 1);
 
+	if(not -e $file)
+	{
+		die("$file: does not exist\n");
+	}
+
 	my $in = slurp($file);
 	foreach my $l (split(/\n/,$in))
 	{
+		my $match;
 		if ($l =~ /_\(/)
 		{
+			$match = 1;
 			$l =~ s/^[^_]+//;
 			$l =~ s/_\(/gettext\(/g;
 		}
-		else
+		foreach my $other (@extraI18nFunctions)
+		{
+			if ($l =~ /\Q$other\E\(/)
+			{
+				$match = 1;
+				$l =~ s/^\Q$other\E/gettext/g;
+				$l =~ s/([\s\(,;])\Q$other\E/$1gettext/g;
+			}
+		}
+		if(not $match)
 		{
 			$l = '';
 		}
@@ -66,6 +92,12 @@ foreach my $fmap (keys %map)
 	push(@cmd,$map{$fmap});
 }
 system(@cmd);
+
+if(not -e $outfile)
+{
+	print "Found no strings to extract\n";
+	exit(0);
+}
 
 my $result = slurp($outfile);
 foreach my $k (keys %map)
@@ -91,5 +123,65 @@ sub slurp
 
 sub usage
 {
-	print "USAGE: $0 outfile.pot infile1.js infile2.js ..\n";
+	print "USAGE: $0 [OPTIONS] outfile.pot infile1.js infile2.js ..\n";
+	print "\nOptional options are:\n";
+	PrintHelp('','--addfunc "function"','Lets you have additional functions that it will treat as a gettext function. Ie. if you wrap SimpleJSi18n in an i18n object, and use i18n.get() instead of _() or gettext(), then you can supply --addfunc "i18n.get" to make sure that jsxgettext extracts those strings.');
+}
+
+# Purpose: Print formatted --help output
+# Usage: PrintHelp('-shortoption', '--longoption', 'description');
+#  Description will be reformatted to fit within a normal terminal
+sub PrintHelp
+{
+	# The short option
+	my $short = shift,
+	# The long option
+	my $long = shift;
+	# The description
+	my $desc = shift;
+	# The generated description that will be printed in the end
+	my $GeneratedDesc;
+	# The current line of the description
+	my $currdesc = '';
+	# The maximum length any line can be
+	my $maxlen = 80;
+	# The length the options take up
+	my $optionlen = 20;
+	# Check if the short/long are LONGER than optionlen, if so, we need
+	# to do some additional magic to take up only $maxlen.
+	# The +1 here is because we always add a space between them, no matter what
+	if ((length($short) + length($long) + 1) > $optionlen)
+	{
+		$optionlen = length($short) + length($long) + 1;
+	}
+	# Split the description into lines
+	foreach my $part (split(/ /,$desc))
+	{
+		if(defined $GeneratedDesc)
+		{
+			if ((length($currdesc) + length($part) + 1 + 20) > $maxlen)
+			{
+				$GeneratedDesc .= "\n";
+				$currdesc = '';
+			}
+			else
+			{
+				$currdesc .= ' ';
+				$GeneratedDesc .= ' ';
+			}
+		}
+		$currdesc .= $part;
+		$GeneratedDesc .= $part;
+	}
+	# Something went wrong
+	die('Option mismatch') if not $GeneratedDesc;
+	# Print it all
+	foreach my $description (split(/\n/,$GeneratedDesc))
+	{
+		printf "%-4s %-15s %s\n", $short,$long,$description;
+		# Set short and long to '' to ensure we don't print the options twice
+		$short = '';$long = '';
+	}
+	# Succeed
+	return 1;
 }
