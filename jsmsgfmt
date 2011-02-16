@@ -47,6 +47,11 @@ foreach my $file (@ARGV)
 	}
 	foreach my $ent (keys(%map))
 	{
+		if(not length $map{$ent})
+		{
+			next;
+		}
+
 		if(not $generated{$ent})
 		{
 			$generated{$ent} = {};
