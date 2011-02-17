@@ -19,17 +19,17 @@
 
 (function (window)
 {
-    var map = null,
-        lang = null,
-        langs = null;
+    var map, lang, langs, gettext;
 
     /* Begin payload data */
     /*PAYLOAD*/
     /* End of payload data */
 
     /* Main gettext method */
-    var gettext = function (string)
+    gettext = function (string)
     {
+        if (map[string] === undefined)
+            return string;
         var str = map[string][lang];
         if(str && str.length)
             return str;
