@@ -36,9 +36,19 @@
         return string;
     };
 
-    /* Initialization method. We don't initialize until the first call to _/gettext.
-     * After initialization has finished, we will replace _/gettext with the proper
-     * gettext method over */
+    window.gettextp = window.__ = function(string, replace)
+    {
+        string = gettext(string);
+        for(var str in replace)
+        {
+            string = string.replace('%('+str+')',replace[str]);
+        }
+        return string;
+    };
+
+    /* Initialization method. We don't initialize until the first call to
+     * _/gettext.  After initialization has finished, we will replace _/gettext
+     * with the proper gettext method over */
     window._ = window.gettext = function (string)
     {
         var language = navigator.language || navigator.browserLanguage, 
