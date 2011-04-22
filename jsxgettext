@@ -58,11 +58,12 @@ foreach my $file (@ARGV)
 	foreach my $l (split(/\n/,$in))
 	{
 		my $match;
-		if ($l =~ /_\(/)
+		if ($l =~ /__?\(/)
 		{
 			$match = 1;
 			$l =~ s/^[^_]+//;
-			$l =~ s/_\(/gettext\(/g;
+			$l =~ s/__?\s*\(/gettext\(/g;
+			$l =~ s/gettextp/gettext/g;
 		}
 		foreach my $other (@extraI18nFunctions)
 		{
