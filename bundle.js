@@ -49,7 +49,7 @@
     /* Initialization method. We don't initialize until the first call to
      * _/gettext.  After initialization has finished, we will replace _/gettext
      * with the proper gettext method over */
-    window._ = window.gettext = function (string)
+    window._g = window.gettext = function (string)
     {
         var language = navigator.language || navigator.browserLanguage, 
             i = 0,
@@ -72,13 +72,13 @@
         if(lang)
         {
             // Replace us with the proper gettext
-            window.gettext = window._ = gettext;
+            window.gettext = window._g = gettext;
         }
         else
         {
             // We didn't detect any language that is supported.
             // Replace ourselves with a dummy function.
-            window.gettext = window._ = function(s) { return s; };
+            window.gettext = window._g = function(s) { return s; };
         }
         return window.gettext(string);
     };
